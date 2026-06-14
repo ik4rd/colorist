@@ -7,7 +7,7 @@ import (
 
 type Algorithm interface {
 	Name() string
-	Partition(px *pixels, opts Options) []Region
+	Partition(px *Pixels, opts Options) []Region
 }
 
 var registry = map[string]Algorithm{}

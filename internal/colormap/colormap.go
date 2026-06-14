@@ -1,8 +1,11 @@
 package colormap
 
 import (
+	"bytes"
 	"fmt"
 	"image"
+
+	"github.com/ik4rd/colorist/internal/imageio"
 )
 
 const DefaultAlgorithm = "quadtree"
@@ -43,19 +46,23 @@ func DefaultOptions() Options {
 	}
 }
 
-func Build(img image.Image, opts Options) ([]Region, error) {
-	if img == nil {
-		return nil, fmt.Errorf("colormap: nil image")
+func (o Options) normalized() Options {
+	if o.MinSize < minBound {
+		o.MinSize = minBound
+	}
+	if o.MaxDepth < minBound {
+		o.MaxDepth = minBound
+	}
+	if o.Algorithm == "" {
+		o.Algorithm = DefaultAlgorithm
 	}
 
-	if opts.MinSize < minBound {
-		opts.MinSize = minBound
-	}
-	if opts.MaxDepth < minBound {
-		opts.MaxDepth = minBound
-	}
-	if opts.Algorithm == "" {
-		opts.Algorithm = DefaultAlgorithm
+	return o
+}
+
+func NewPixels(img image.Image) (*Pixels, error) {
+	if img == nil {
+		return nil, fmt.Errorf("colormap: nil image")
 	}
 
 	b := img.Bounds()
@@ -63,12 +70,61 @@ func Build(img image.Image, opts Options) ([]Region, error) {
 		return nil, fmt.Errorf("colormap: empty image")
 	}
 
+	return newPixels(img), nil
+}
+
+func BuildFrom(px *Pixels, opts Options) ([]Region, error) {
+	if px == nil {
+		return nil, fmt.Errorf("colormap: nil pixels")
+	}
+
+	opts = opts.normalized()
+
 	algo, err := getAlgorithm(opts.Algorithm)
 	if err != nil {
 		return nil, err
 	}
 
-	px := newPixels(img)
-
 	return algo.Partition(px, opts), nil
+}
+
+func Build(img image.Image, opts Options) ([]Region, error) {
+	px, err := NewPixels(img)
+	if err != nil {
+		return nil, err
+	}
+
+	return BuildFrom(px, opts)
+}
+
+func ProcessPixels(px *Pixels, opts Options) (image.Image, error) {
+	regions, err := BuildFrom(px, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return Render(regions, px.w, px.h, opts), nil
+}
+
+func Process(img image.Image, opts Options) (image.Image, error) {
+	px, err := NewPixels(img)
+	if err != nil {
+		return nil, err
+	}
+
+	return ProcessPixels(px, opts)
+}
+
+func ProcessBytes(img image.Image, format string, opts Options) ([]byte, error) {
+	out, err := Process(img, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	if err := imageio.Encode(&buf, format, out); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
