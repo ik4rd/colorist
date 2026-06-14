@@ -14,6 +14,7 @@ const (
 	defaultMinSize    = 8
 	defaultMaxDepth   = 64
 	defaultGap        = 0
+	defaultLabels     = true
 
 	minBound = 1
 )
@@ -26,6 +27,7 @@ type Options struct {
 	MinSize    int
 	MaxDepth   int
 	Gap        int
+	Labels     bool
 }
 
 func DefaultOptions() Options {
@@ -37,6 +39,7 @@ func DefaultOptions() Options {
 		MinSize:    defaultMinSize,
 		MaxDepth:   defaultMaxDepth,
 		Gap:        defaultGap,
+		Labels:     defaultLabels,
 	}
 }
 

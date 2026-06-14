@@ -31,6 +31,7 @@ func parseFlags(args []string) (config, error) {
 	fs.IntVar(&cfg.opts.MinSize, "min-size", cfg.opts.MinSize, "minimum rectangle side in pixels")
 	fs.IntVar(&cfg.opts.MaxDepth, "max-depth", cfg.opts.MaxDepth, "maximum recursion depth")
 	fs.IntVar(&cfg.opts.Gap, "gap", cfg.opts.Gap, "gap between rectangles in pixels")
+	fs.BoolVar(&cfg.opts.Labels, "labels", cfg.opts.Labels, "draw hex labels on large rectangles")
 
 	if err := fs.Parse(args); err != nil {
 		return config{}, err

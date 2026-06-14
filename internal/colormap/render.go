@@ -8,6 +8,11 @@ import (
 func Render(regions []Region, w, h int, opts Options) image.Image {
 	dst := image.NewRGBA(image.Rect(0, 0, w, h))
 
+	var lbl *labeler
+	if opts.Labels {
+		lbl = newLabeler()
+	}
+
 	for _, rg := range regions {
 		x0, y0 := rg.X, rg.Y
 		x1, y1 := rg.X+rg.W, rg.Y+rg.H
@@ -20,7 +25,12 @@ func Render(regions []Region, w, h int, opts Options) image.Image {
 			}
 		}
 
-		draw.Draw(dst, image.Rect(x0, y0, x1, y1), &image.Uniform{C: rg.Mean}, image.Point{}, draw.Src)
+		rect := image.Rect(x0, y0, x1, y1)
+		draw.Draw(dst, rect, &image.Uniform{C: rg.Mean}, image.Point{}, draw.Src)
+
+		if lbl != nil {
+			lbl.draw(dst, rect, rg.Hex, rg.Mean)
+		}
 	}
 
 	return dst
