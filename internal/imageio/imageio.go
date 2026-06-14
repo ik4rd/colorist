@@ -13,6 +13,11 @@ import (
 
 const jpegQuality = 92
 
+const (
+	FormatPNG  = "png"
+	FormatJPEG = "jpeg"
+)
+
 func Load(path string) (image.Image, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -34,7 +39,7 @@ func Save(path string, img image.Image) error {
 		return err
 	}
 
-	err = encode(f, filepath.Ext(path), img)
+	err = Encode(f, filepath.Ext(path), img)
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
@@ -42,13 +47,13 @@ func Save(path string, img image.Image) error {
 	return err
 }
 
-func encode(w io.Writer, ext string, img image.Image) error {
-	switch strings.ToLower(ext) {
-	case ".jpg", ".jpeg":
+func Encode(w io.Writer, format string, img image.Image) error {
+	switch strings.ToLower(strings.TrimPrefix(format, ".")) {
+	case "jpg", "jpeg":
 		return jpeg.Encode(w, img, &jpeg.Options{Quality: jpegQuality})
-	case ".png", "":
+	case "png", "":
 		return png.Encode(w, img)
 	default:
-		return fmt.Errorf("unsupported output extension %q (use .png or .jpg)", ext)
+		return fmt.Errorf("imageio: unsupported format %q (use png or jpg)", format)
 	}
 }

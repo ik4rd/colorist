@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ik4rd/colorist/internal/colormap"
+	_ "github.com/ik4rd/colorist/internal/colormap/algorithms"
 	"github.com/ik4rd/colorist/internal/imageio"
 	"github.com/ik4rd/colorist/internal/logger"
 )

@@ -8,6 +8,6 @@ type Region struct {
 	Hex        string
 }
 
-func newRegion(x, y, w, h int, mean color.RGBA) Region {
-	return Region{X: x, Y: y, W: w, H: h, Mean: mean, Hex: hex(mean)}
+func newRegion(r Rect, mean color.RGBA) Region {
+	return Region{X: r.X, Y: r.Y, W: r.W, H: r.H, Mean: mean, Hex: hex(mean)}
 }

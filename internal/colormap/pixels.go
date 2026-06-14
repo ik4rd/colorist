@@ -11,47 +11,95 @@ const (
 	channelCount = 3
 )
 
-type pixels struct {
+type Pixels struct {
 	w, h int
 	r    []float64
 	g    []float64
 	b    []float64
 }
 
-func newPixels(img image.Image) *pixels {
+func newPixels(img image.Image) *Pixels {
 	bnd := img.Bounds()
 	w, h := bnd.Dx(), bnd.Dy()
 
-	p := &pixels{w: w, h: h, r: make([]float64, w*h), g: make([]float64, w*h), b: make([]float64, w*h)}
+	p := &Pixels{w: w, h: h, r: make([]float64, w*h), g: make([]float64, w*h), b: make([]float64, w*h)}
 
-	for y := range h {
-		for x := range w {
-			cr, cg, cb, _ := img.At(bnd.Min.X+x, bnd.Min.Y+y).RGBA()
-			i := y*w + x
-			p.r[i] = float64(cr >> channelShift)
-			p.g[i] = float64(cg >> channelShift)
-			p.b[i] = float64(cb >> channelShift)
+	switch src := img.(type) {
+	case *image.YCbCr:
+		for y := range h {
+			for x := range w {
+				yi := src.YOffset(bnd.Min.X+x, bnd.Min.Y+y)
+				ci := src.COffset(bnd.Min.X+x, bnd.Min.Y+y)
+				cr, cg, cb := color.YCbCrToRGB(src.Y[yi], src.Cb[ci], src.Cr[ci])
+				p.set(y*w+x, cr, cg, cb)
+			}
+		}
+	case *image.RGBA:
+		for y := range h {
+			o := src.PixOffset(bnd.Min.X, bnd.Min.Y+y)
+			for x := range w {
+				p.set(y*w+x, src.Pix[o], src.Pix[o+1], src.Pix[o+2])
+				o += 4
+			}
+		}
+	case *image.NRGBA:
+		for y := range h {
+			o := src.PixOffset(bnd.Min.X, bnd.Min.Y+y)
+			for x := range w {
+				a := uint32(src.Pix[o+3])
+				p.set(y*w+x,
+					uint8(uint32(src.Pix[o])*a/maxChannel),
+					uint8(uint32(src.Pix[o+1])*a/maxChannel),
+					uint8(uint32(src.Pix[o+2])*a/maxChannel))
+				o += 4
+			}
+		}
+	case *image.Gray:
+		for y := range h {
+			o := src.PixOffset(bnd.Min.X, bnd.Min.Y+y)
+			for x := range w {
+				v := src.Pix[o]
+				p.set(y*w+x, v, v, v)
+				o++
+			}
+		}
+	default:
+		for y := range h {
+			for x := range w {
+				cr, cg, cb, _ := img.At(bnd.Min.X+x, bnd.Min.Y+y).RGBA()
+				p.set(y*w+x, uint8(cr>>channelShift), uint8(cg>>channelShift), uint8(cb>>channelShift))
+			}
 		}
 	}
 
 	return p
 }
 
-func (p *pixels) heterogeneous(x, y, w, h int, opts Options) (color.RGBA, bool) {
-	mean, rms := p.stats(x, y, w, h)
+func (p *Pixels) set(i int, r, g, b uint8) {
+	p.r[i] = float64(r)
+	p.g[i] = float64(g)
+	p.b[i] = float64(b)
+}
+
+func (p *Pixels) Stats(r Rect) (mean color.RGBA, rms float64) {
+	return p.stats(r.X, r.Y, r.W, r.H)
+}
+
+func (p *Pixels) heterogeneous(r Rect, opts Options) (color.RGBA, bool) {
+	mean, rms := p.stats(r.X, r.Y, r.W, r.H)
 	if rms > opts.Threshold {
 		return mean, true
 	}
 
 	if opts.Detail > 0 && opts.DetailFrac > 0 &&
-		p.outlierFraction(x, y, w, h, mean, opts.Detail) > opts.DetailFrac {
+		p.outlierFraction(r.X, r.Y, r.W, r.H, mean, opts.Detail) > opts.DetailFrac {
 		return mean, true
 	}
 
 	return mean, false
 }
 
-func (p *pixels) stats(x, y, w, h int) (mean color.RGBA, rms float64) {
+func (p *Pixels) stats(x, y, w, h int) (mean color.RGBA, rms float64) {
 	var sr, sg, sb, sr2, sg2, sb2 float64
 
 	n := float64(w * h)
@@ -82,7 +130,7 @@ func (p *pixels) stats(x, y, w, h int) (mean color.RGBA, rms float64) {
 	return mean, rms
 }
 
-func (p *pixels) outlierFraction(x, y, w, h int, mean color.RGBA, dist float64) float64 {
+func (p *Pixels) outlierFraction(x, y, w, h int, mean color.RGBA, dist float64) float64 {
 	mr, mg, mb := float64(mean.R), float64(mean.G), float64(mean.B)
 	thr := dist * dist
 
