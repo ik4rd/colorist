@@ -29,12 +29,17 @@ func (a *App) UploadImage(b64 string) (map[string]any, error) {
 		return nil, err
 	}
 
-	id, width, height, err := a.svc.Upload(data)
+	res, err := a.svc.Upload(data)
 	if err != nil {
 		return nil, err
 	}
 
-	return map[string]any{"id": id, "width": width, "height": height}, nil
+	return map[string]any{
+		"id":     res.ID,
+		"width":  res.Width,
+		"height": res.Height,
+		"theme":  res.Theme,
+	}, nil
 }
 
 func (a *App) SavePNG(b64 string) (string, error) {

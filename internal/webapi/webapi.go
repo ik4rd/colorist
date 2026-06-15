@@ -14,6 +14,7 @@ import (
 	_ "github.com/ik4rd/colorist/internal/colormap/algorithms"
 	"github.com/ik4rd/colorist/internal/imageio"
 	"github.com/ik4rd/colorist/internal/logger"
+	"github.com/ik4rd/colorist/internal/palette"
 )
 
 const maxUploadBytes = 32 << 20 // 32 MiB
@@ -37,19 +38,32 @@ func Register(mux *http.ServeMux, log *logger.Logger, maxImages int) {
 	New(log, maxImages).Register(mux)
 }
 
-func (svc *Service) Upload(data []byte) (id string, width, height int, err error) {
+type UploadResult struct {
+	ID     string        `json:"id"`
+	Width  int           `json:"width"`
+	Height int           `json:"height"`
+	Theme  palette.Theme `json:"theme"`
+}
+
+func (svc *Service) Upload(data []byte) (UploadResult, error) {
 	img, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
-		return "", 0, 0, fmt.Errorf("decode: %w", err)
+		return UploadResult{}, fmt.Errorf("decode: %w", err)
 	}
 
 	px, err := colormap.NewPixels(img)
 	if err != nil {
-		return "", 0, 0, err
+		return UploadResult{}, err
 	}
 
 	b := img.Bounds()
-	return svc.store.put(px), b.Dx(), b.Dy(), nil
+
+	return UploadResult{
+		ID:     svc.store.put(px),
+		Width:  b.Dx(),
+		Height: b.Dy(),
+		Theme:  palette.FromImage(img),
+	}, nil
 }
 
 func (svc *Service) uploadHandler() http.HandlerFunc {
@@ -73,13 +87,13 @@ func (svc *Service) uploadHandler() http.HandlerFunc {
 			return
 		}
 
-		id, width, height, err := svc.Upload(data)
+		res, err := svc.Upload(data)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
 			return
 		}
 
-		writeJSON(w, svc.log, map[string]any{"id": id, "width": width, "height": height})
+		writeJSON(w, svc.log, res)
 	}
 }
 

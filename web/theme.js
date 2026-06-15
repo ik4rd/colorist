@@ -1,34 +1,20 @@
-import { extractPalette, deriveAccent } from "./color.js";
+export function applyTheme(theme) {
+  if (!theme) return;
 
-function loadImage(file) {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-
-    img.onerror = (e) => {
-      URL.revokeObjectURL(url);
-      reject(e);
-    };
-
-    img.src = url;
-  });
+  applyPalette(theme.palette);
+  applyAccent(theme.accent);
 }
 
 function applyPalette(colors) {
-  if (!colors.length) return;
+  if (!Array.isArray(colors) || !colors.length) return;
+
   const root = document.documentElement;
   colors.forEach((c, i) =>
     root.style.setProperty(`--c${i + 1}`, `${c[0]}, ${c[1]}, ${c[2]}`),
   );
 }
 
-function applyAccent(palette) {
-  const a = deriveAccent(palette);
+function applyAccent(a) {
   if (!a) return;
 
   const root = document.documentElement;
@@ -42,14 +28,4 @@ function applyAccent(palette) {
     "--accent-rgb",
     `${a.base[0]}, ${a.base[1]}, ${a.base[2]}`,
   );
-}
-
-export function themeFromImage(file) {
-  loadImage(file)
-    .then((img) => {
-      const palette = extractPalette(img, 4);
-      applyPalette(palette);
-      applyAccent(palette);
-    })
-    .catch(() => {});
 }

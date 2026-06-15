@@ -1,6 +1,6 @@
 import { RENDER_DEBOUNCE_MS } from "./config.js";
 import { initControls, collectOpts } from "./controls.js";
-import { themeFromImage } from "./theme.js";
+import { applyTheme } from "./theme.js";
 import { uploadImage, renderImage, fetchRegions } from "./api.js";
 import { initPicker, setRegions } from "./picker.js";
 
@@ -30,13 +30,13 @@ async function handleFile(file) {
   if (!file) return;
 
   setStatus("Uploading…");
-  themeFromImage(file);
 
   try {
     const info = await uploadImage(file);
     imageID = info.id;
     imageW = info.width;
     imageH = info.height;
+    applyTheme(info.theme);
     els.stage.classList.remove("empty");
     setStatus("");
     render();
