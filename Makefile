@@ -2,6 +2,8 @@ BINARY  := colorist
 PKG     := ./cmd/app
 BIN_DIR := bin
 
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+
 .DEFAULT_GOAL := build
 
 .PHONY: build
@@ -27,6 +29,11 @@ desktop:
 desktop-dev:
 	cd desktop && wails dev $(ARGS)
 
+.PHONY: dmg
+dmg:
+	cd desktop && wails build -platform darwin/arm64 -clean
+	scripts/macos-dmg.sh desktop/build/bin/colorist.app $(VERSION) dist
+
 .PHONY: test
 test:
 	go test ./...
@@ -50,4 +57,4 @@ tidy:
 
 .PHONY: clean
 clean:
-	rm -rf $(BIN_DIR) coverage.out
+	rm -rf $(BIN_DIR) dist coverage.out

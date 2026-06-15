@@ -15,17 +15,20 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            platform: darwin/universal
+            platform: darwin/arm64
             artifact: colorist-macos
             tags: ""
+            package: "dist/*"
           - os: windows-latest
             platform: windows/amd64
             artifact: colorist-windows
             tags: ""
+            package: "desktop/build/bin/*"
           - os: ubuntu-latest
             platform: linux/amd64
             artifact: colorist-linux
             tags: "webkit2_41"
+            package: "desktop/build/bin/*"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -47,13 +50,17 @@ jobs:
         working-directory: desktop
         run: wails build -platform ${{ matrix.platform }} -clean -tags "${{ matrix.tags }}"
 
+      - name: Package macOS DMG
+        if: runner.os == 'macOS'
+        run: scripts/macos-dmg.sh desktop/build/bin/colorist.app "${GITHUB_REF_NAME//\//-}" dist
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: desktop/build/bin/*
+          path: ${{ matrix.package }}
 
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: desktop/build/bin/*
+          files: ${{ matrix.package }}
