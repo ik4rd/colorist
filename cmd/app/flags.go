@@ -33,9 +33,10 @@ func parseFlags(args []string) (config, error) {
 	fs.IntVar(&cfg.opts.Gap, "gap", cfg.opts.Gap, "gap between rectangles in pixels")
 	fs.IntVar(&cfg.opts.HalvesPerAxis, "halves-per-axis", cfg.opts.HalvesPerAxis,
 		"quadtree: splits per axis (2 = 2x2 quadrants)")
-	fs.BoolVar(&cfg.opts.Labels, "labels", cfg.opts.Labels, "draw hex labels on large rectangles")
-	fs.BoolVar(&cfg.opts.ColorNames, "color-names", cfg.opts.ColorNames,
-		"also draw the color name on large rectangles")
+	fs.Float64Var(&cfg.opts.LabelDensity, "label-density", cfg.opts.LabelDensity,
+		"fraction of regions to label, 0..1 (0=none, 1=all); largest first")
+	fs.StringVar(&cfg.opts.LabelFormat, "label-format", cfg.opts.LabelFormat,
+		"label text: names|hex|rgb|cmyk")
 
 	if err := fs.Parse(args); err != nil {
 		return config{}, err

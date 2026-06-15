@@ -107,7 +107,6 @@ func (svc *Service) renderHandler() http.HandlerFunc {
 		}
 
 		req.Opts.Gap = 0
-		req.Opts.Labels = true
 
 		out, err := colormap.ProcessPixels(px, req.Opts)
 		if err != nil {

@@ -9,10 +9,19 @@ export const CONTROLS = [
     options: ["quadtree", "bsp", "adaptive_bsp", "kdtree"],
   },
   {
-    type: "toggle",
-    key: "ColorNames",
-    label: "names",
-    value: true,
+    type: "range",
+    key: "LabelDensity",
+    label: "labels",
+    values: [0, 0.25, 0.5, 0.75, 1],
+    display: ["none", "25%", "50%", "75%", "all"],
+    value: 1,
+  },
+  {
+    type: "select",
+    key: "LabelFormat",
+    label: "format",
+    value: "hex",
+    options: ["hex", "rgb", "cmyk", "names"],
   },
   {
     type: "range",

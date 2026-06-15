@@ -39,11 +39,25 @@ func mustParseFont(b []byte) *opentype.Font {
 }
 
 type labeler struct {
-	faces map[int]font.Face
+	faces   map[int]font.Face
+	maxFont float64
+	minFont float64
+	minCell int
 }
 
-func newLabeler() *labeler {
-	return &labeler{faces: make(map[int]font.Face)}
+func newLabeler(scale int) *labeler {
+	if scale < 1 {
+		scale = 1
+	}
+
+	s := float64(scale)
+
+	return &labeler{
+		faces:   make(map[int]font.Face),
+		maxFont: labelMaxFontSize * s,
+		minFont: labelMinFontSize * s,
+		minCell: labelNameMinCellPx * scale,
+	}
 }
 
 func (l *labeler) face(size int) font.Face {
@@ -65,18 +79,25 @@ func (l *labeler) face(size int) font.Face {
 	return f
 }
 
-func (l *labeler) draw(dst draw.Image, rect image.Rectangle, hexStr, name string, bg color.RGBA) {
-	lines := []string{hexStr}
+func (l *labeler) fits(rect image.Rectangle, ref string) bool {
+	_, _, ok := l.fit(rect, []string{ref})
+	return ok
+}
 
-	bigEnough := name != "" &&
-		rect.Dx() >= labelNameMinCellPx &&
-		rect.Dy() >= labelNameMinCellPx
+func (l *labeler) draw(dst draw.Image, rect image.Rectangle, primary, secondary, ref string, bg color.RGBA) {
+	lines := []string{primary}
+	refs := []string{ref}
+
+	bigEnough := secondary != "" &&
+		rect.Dx() >= l.minCell &&
+		rect.Dy() >= l.minCell
 	if bigEnough {
-		lines = []string{hexStr, name}
+		lines = []string{primary, secondary}
+		refs = []string{ref, secondary}
 	}
 
 	for {
-		f, pad, ok := l.fit(rect, lines)
+		f, pad, ok := l.fit(rect, refs)
 		if ok {
 			l.render(dst, rect, lines, f, pad, bg)
 			return
@@ -84,6 +105,7 @@ func (l *labeler) draw(dst draw.Image, rect image.Rectangle, hexStr, name string
 
 		if len(lines) > 1 {
 			lines = lines[:1]
+			refs = refs[:1]
 			continue
 		}
 
@@ -95,10 +117,10 @@ func (l *labeler) fit(rect image.Rectangle, lines []string) (font.Face, int, boo
 	n := len(lines)
 
 	size := float64(rect.Dy()) * labelHeightFraction / lineUnit(n)
-	if size > labelMaxFontSize {
-		size = labelMaxFontSize
+	if size > l.maxFont {
+		size = l.maxFont
 	}
-	if size < labelMinFontSize {
+	if size < l.minFont {
 		return nil, 0, false
 	}
 
@@ -115,7 +137,7 @@ func (l *labeler) fit(rect image.Rectangle, lines []string) (font.Face, int, boo
 
 	if maxW := widestLine(f, lines); maxW > avail {
 		size *= float64(avail) / float64(maxW)
-		if size < labelMinFontSize {
+		if size < l.minFont {
 			return nil, 0, false
 		}
 		if f = l.face(int(size)); f == nil {

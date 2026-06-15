@@ -11,6 +11,13 @@ import (
 const DefaultAlgorithm = "quadtree"
 
 const (
+	LabelFormatNames = "names"
+	LabelFormatHex   = "hex"
+	LabelFormatRGB   = "rgb"
+	LabelFormatCMYK  = "cmyk"
+)
+
+const (
 	defaultThreshold     = 32
 	defaultDetail        = 200
 	defaultDetailFrac    = 0.05
@@ -18,8 +25,8 @@ const (
 	defaultMaxDepth      = 64
 	defaultGap           = 0
 	defaultHalvesPerAxis = 2
-	defaultLabels        = true
-	defaultColorNames    = true
+	defaultLabelDensity  = 1.0
+	defaultLabelFormat   = LabelFormatHex
 
 	minBound         = 1
 	minHalvesPerAxis = 2
@@ -34,8 +41,8 @@ type Options struct {
 	MaxDepth      int
 	Gap           int
 	HalvesPerAxis int
-	Labels        bool
-	ColorNames    bool
+	LabelDensity  float64
+	LabelFormat   string
 }
 
 func DefaultOptions() Options {
@@ -48,8 +55,8 @@ func DefaultOptions() Options {
 		MaxDepth:      defaultMaxDepth,
 		Gap:           defaultGap,
 		HalvesPerAxis: defaultHalvesPerAxis,
-		Labels:        defaultLabels,
-		ColorNames:    defaultColorNames,
+		LabelDensity:  defaultLabelDensity,
+		LabelFormat:   defaultLabelFormat,
 	}
 }
 

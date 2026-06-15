@@ -10,6 +10,8 @@ type Region struct {
 	X, Y, W, H int
 	Mean       color.RGBA
 	Hex        string
+	RGB        string
+	CMYK       string
 	Name       string
 }
 
@@ -21,6 +23,8 @@ func newRegion(r Rect, mean color.RGBA) Region {
 		H:    r.H,
 		Mean: mean,
 		Hex:  hex(mean),
+		RGB:  rgbStr(mean),
+		CMYK: cmykStr(mean),
 		Name: colornames.Nearest(mean),
 	}
 }

@@ -41,7 +41,9 @@ function buildControls() {
 
     const readout = document.createElement("span");
     readout.className = "readout";
-    readout.textContent = c.value;
+    readout.textContent = c.display
+      ? c.display[c.values.indexOf(c.value)]
+      : c.value;
     head.appendChild(readout);
 
     row.appendChild(head);
@@ -69,6 +71,7 @@ function buildControls() {
 
       if (c.values) {
         input.valuesList = c.values;
+        input.displayList = c.display || null;
         input.min = 0;
         input.max = c.values.length - 1;
         input.step = 1;
@@ -81,7 +84,7 @@ function buildControls() {
       }
 
       input.addEventListener("input", () => {
-        readout.textContent = controlValue(input);
+        readout.textContent = readoutText(input);
         onChange();
       });
     }
@@ -102,6 +105,11 @@ function updateVisibility() {
     const show = !row.showFor || row.showFor.includes(algo);
     row.style.display = show ? "" : "none";
   }
+}
+
+function readoutText(input) {
+  if (input.displayList) return input.displayList[parseInt(input.value, 10)];
+  return controlValue(input);
 }
 
 function controlValue(input) {
