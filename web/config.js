@@ -6,7 +6,7 @@ export const CONTROLS = [
     key: "Algorithm",
     label: "algorithm",
     value: "quadtree",
-    options: ["quadtree", "bsp"],
+    options: ["quadtree", "bsp", "adaptive_bsp", "kdtree"],
   },
   {
     type: "range",
