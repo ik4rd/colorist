@@ -11,38 +11,42 @@ import (
 const DefaultAlgorithm = "quadtree"
 
 const (
-	defaultThreshold  = 32
-	defaultDetail     = 200
-	defaultDetailFrac = 0.05
-	defaultMinSize    = 8
-	defaultMaxDepth   = 64
-	defaultGap        = 0
-	defaultLabels     = true
+	defaultThreshold     = 32
+	defaultDetail        = 200
+	defaultDetailFrac    = 0.05
+	defaultMinSize       = 8
+	defaultMaxDepth      = 64
+	defaultGap           = 0
+	defaultHalvesPerAxis = 2
+	defaultLabels        = true
 
-	minBound = 1
+	minBound         = 1
+	minHalvesPerAxis = 2
 )
 
 type Options struct {
-	Algorithm  string
-	Threshold  float64
-	Detail     float64
-	DetailFrac float64
-	MinSize    int
-	MaxDepth   int
-	Gap        int
-	Labels     bool
+	Algorithm     string
+	Threshold     float64
+	Detail        float64
+	DetailFrac    float64
+	MinSize       int
+	MaxDepth      int
+	Gap           int
+	HalvesPerAxis int
+	Labels        bool
 }
 
 func DefaultOptions() Options {
 	return Options{
-		Algorithm:  DefaultAlgorithm,
-		Threshold:  defaultThreshold,
-		Detail:     defaultDetail,
-		DetailFrac: defaultDetailFrac,
-		MinSize:    defaultMinSize,
-		MaxDepth:   defaultMaxDepth,
-		Gap:        defaultGap,
-		Labels:     defaultLabels,
+		Algorithm:     DefaultAlgorithm,
+		Threshold:     defaultThreshold,
+		Detail:        defaultDetail,
+		DetailFrac:    defaultDetailFrac,
+		MinSize:       defaultMinSize,
+		MaxDepth:      defaultMaxDepth,
+		Gap:           defaultGap,
+		HalvesPerAxis: defaultHalvesPerAxis,
+		Labels:        defaultLabels,
 	}
 }
 
@@ -52,6 +56,9 @@ func (o Options) normalized() Options {
 	}
 	if o.MaxDepth < minBound {
 		o.MaxDepth = minBound
+	}
+	if o.HalvesPerAxis < minHalvesPerAxis {
+		o.HalvesPerAxis = minHalvesPerAxis
 	}
 	if o.Algorithm == "" {
 		o.Algorithm = DefaultAlgorithm

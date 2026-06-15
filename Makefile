@@ -12,6 +12,10 @@ build:
 run:
 	go run $(PKG) $(ARGS)
 
+.PHONY: web
+web:
+	go run ./cmd/web $(ARGS)
+
 .PHONY: test
 test:
 	go test ./...

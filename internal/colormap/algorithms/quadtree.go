@@ -6,20 +6,37 @@ func init() {
 	colormap.Register(colormap.NewRecursive("quadtree", quadtreeSplit))
 }
 
-const halvesPerAxis = 2
-
 func quadtreeSplit(_ *colormap.Pixels, r colormap.Rect, opts colormap.Options) []colormap.Rect {
-	if r.W < halvesPerAxis*opts.MinSize || r.H < halvesPerAxis*opts.MinSize {
+	n := max(opts.HalvesPerAxis, 2)
+
+	if r.W < n*opts.MinSize || r.H < n*opts.MinSize {
 		return nil
 	}
 
-	lw, lh := r.W/halvesPerAxis, r.H/halvesPerAxis
-	rw, rh := r.W-lw, r.H-lh
+	xs := splitAxis(r.X, r.W, n)
+	ys := splitAxis(r.Y, r.H, n)
 
-	return []colormap.Rect{
-		{X: r.X, Y: r.Y, W: lw, H: lh},
-		{X: r.X + lw, Y: r.Y, W: rw, H: lh},
-		{X: r.X, Y: r.Y + lh, W: lw, H: rh},
-		{X: r.X + lw, Y: r.Y + lh, W: rw, H: rh},
+	rects := make([]colormap.Rect, 0, n*n)
+
+	for j := range n {
+		for i := range n {
+			rects = append(rects, colormap.Rect{
+				X: xs[i],
+				Y: ys[j],
+				W: xs[i+1] - xs[i],
+				H: ys[j+1] - ys[j],
+			})
+		}
 	}
+
+	return rects
+}
+
+func splitAxis(start, length, n int) []int {
+	bounds := make([]int, n+1)
+	for i := 0; i <= n; i++ {
+		bounds[i] = start + i*length/n
+	}
+
+	return bounds
 }
