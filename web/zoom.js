@@ -25,6 +25,7 @@ let badge = null;
 
 let drag = null;
 let didPan = false;
+let gesture = null;
 
 export function initZoom(imgEl, stageEl, onRequestRender) {
   img = imgEl;
@@ -47,6 +48,9 @@ export function initZoom(imgEl, stageEl, onRequestRender) {
   stage.append(minimap, badge);
 
   img.addEventListener("wheel", onWheel, { passive: false });
+  img.addEventListener("gesturestart", onGestureStart);
+  img.addEventListener("gesturechange", onGestureChange);
+  img.addEventListener("gestureend", onGestureEnd);
   img.addEventListener("mousedown", onMouseDown);
   window.addEventListener("mousemove", onMouseMove);
   window.addEventListener("mouseup", onMouseUp);
@@ -141,11 +145,19 @@ function zoomWheel(e) {
   const fy = clamp((e.clientY - sr.top - img.offsetTop) / ch, 0, 1);
 
   const cur = view || { x: 0, y: 0, w: dims.w, h: dims.h };
-  const pux = cur.x + fx * cur.w; // source point under cursor
-  const puy = cur.y + fy * cur.h;
-
   const [, dy] = pixelDelta(e);
-  const nz = clamp(zoom * Math.exp(-dy * ZOOM_SENS), 1, MAX_ZOOM);
+
+  applyZoom(
+    zoom * Math.exp(-dy * ZOOM_SENS),
+    fx,
+    fy,
+    cur.x + fx * cur.w,
+    cur.y + fy * cur.h,
+  );
+}
+
+function applyZoom(targetZoom, fx, fy, pux, puy) {
+  const nz = clamp(targetZoom, 1, MAX_ZOOM);
   if (nz === zoom) return;
   zoom = nz;
 
@@ -161,6 +173,46 @@ function zoomWheel(e) {
   applyPreview();
   updateOverlays();
   requestRender();
+}
+
+function onGestureStart(e) {
+  if (!dims.w || !dims.h) return;
+  e.preventDefault();
+
+  const cw = img.clientWidth;
+  const ch = img.clientHeight;
+  if (!cw || !ch) return;
+
+  const sr = stage.getBoundingClientRect();
+  const fx = clamp((e.clientX - sr.left - img.offsetLeft) / cw, 0, 1);
+  const fy = clamp((e.clientY - sr.top - img.offsetTop) / ch, 0, 1);
+  const cur = view || { x: 0, y: 0, w: dims.w, h: dims.h };
+
+  gesture = {
+    startZoom: zoom,
+    fx,
+    fy,
+    pux: cur.x + fx * cur.w,
+    puy: cur.y + fy * cur.h,
+  };
+}
+
+function onGestureChange(e) {
+  if (!gesture) return;
+  e.preventDefault();
+  applyZoom(
+    gesture.startZoom * e.scale,
+    gesture.fx,
+    gesture.fy,
+    gesture.pux,
+    gesture.puy,
+  );
+}
+
+function onGestureEnd(e) {
+  if (!gesture) return;
+  e.preventDefault();
+  gesture = null;
 }
 
 function onMouseDown(e) {
