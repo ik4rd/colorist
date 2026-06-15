@@ -15,7 +15,7 @@ const els = {
 
 let imageID = null;
 let lastObjectURL = null;
-let lastBlob = null; // current result PNG, for the native save path
+let lastBlob = null;
 let renderAbort = null;
 let debounceTimer = null;
 
@@ -57,13 +57,13 @@ async function render() {
 
     els.result.src = url;
     els.result.hidden = false;
-    els.save.href = url; // browser download path
+    els.save.href = url;
     els.save.hidden = false;
 
     if (lastObjectURL) URL.revokeObjectURL(lastObjectURL);
 
     lastObjectURL = url;
-    lastBlob = blob; // native save path
+    lastBlob = blob;
     setStatus("");
   } catch (err) {
     if (err.name === "AbortError") return;
@@ -71,9 +71,6 @@ async function render() {
   }
 }
 
-// Native WebViews (the desktop app) ignore <a download>, so under Wails we
-// route Save through a bound Go method that opens a native dialog. In a real
-// browser window.go is undefined and the anchor's download works as usual.
 function desktopSave() {
   return window.go?.main?.App?.SavePNG ?? null;
 }
@@ -81,7 +78,7 @@ function desktopSave() {
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(",", 2)[1]); // drop data: prefix
+    reader.onload = () => resolve(reader.result.split(",", 2)[1]);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
@@ -89,7 +86,7 @@ function blobToBase64(blob) {
 
 els.save.addEventListener("click", async (e) => {
   const save = desktopSave();
-  if (!save) return; // browser: let the anchor download
+  if (!save) return;
 
   e.preventDefault();
   if (!lastBlob) return;

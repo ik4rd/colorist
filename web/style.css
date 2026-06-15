@@ -78,7 +78,7 @@ body::before {
 }
 
 .hero {
-    padding: clamp(2rem, 6vw, 4.5rem) 1.5rem clamp(1.5rem, 4vw, 3rem);
+    padding: clamp(1.25rem, 2vw + 1vh, 3rem) 1.5rem 0;
     text-align: center;
 }
 .hero-inner {
@@ -87,7 +87,7 @@ body::before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.4rem;
+    gap: clamp(0.8rem, 1.5vw + 0.5vh, 1.4rem);
 }
 .brand {
     display: flex;
@@ -96,7 +96,7 @@ body::before {
 .hero h1 {
     margin: 0;
     font-family: var(--mono);
-    font-size: clamp(2.4rem, 7vw, 3.8rem);
+    font-size: clamp(2rem, 4vw + 2vh, 3.8rem);
     font-weight: 800;
     letter-spacing: -0.04em;
     line-height: 1;
@@ -178,7 +178,7 @@ main {
     min-height: 0;
     display: flex;
     justify-content: center;
-    padding: 1.5rem;
+    padding: clamp(0.75rem, 1.5vw + 0.5vh, 1.5rem);
 }
 
 #stage {
@@ -220,9 +220,8 @@ main {
     z-index: 1;
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
     image-rendering: pixelated;
-    border-radius: 8px;
+    border-radius: 10px;
     box-shadow: 0 12px 30px -20px rgba(40, 60, 10, 0.5);
     animation: fade 0.3s ease;
 }
@@ -256,10 +255,10 @@ main {
 #controls {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 1.1rem 1.5rem;
+    padding: clamp(0.55rem, 1vw + 0.4vh, 1rem) clamp(1rem, 3vw, 1.5rem);
     display: flex;
     flex-wrap: wrap;
-    gap: 1.4rem 2rem;
+    gap: clamp(0.6rem, 1vw + 0.4vh, 1.2rem) clamp(1rem, 3vw, 2rem);
     justify-content: center;
 }
 
@@ -269,7 +268,7 @@ main {
     min-width: 170px;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: clamp(0.3rem, 0.6vh, 0.5rem);
 }
 .control-head {
     display: flex;

@@ -44,6 +44,7 @@ function buildControls() {
 
       input.value = c.value;
       input.addEventListener("change", () => {
+        readout.textContent = input.value;
         updateVisibility();
         onChange();
       });
