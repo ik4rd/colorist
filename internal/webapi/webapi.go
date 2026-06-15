@@ -30,6 +30,7 @@ func New(log *logger.Logger, maxImages int) *Service {
 func (svc *Service) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/upload", svc.uploadHandler())
 	mux.HandleFunc("/render", svc.renderHandler())
+	mux.HandleFunc("/regions", svc.regionsHandler())
 }
 
 func Register(mux *http.ServeMux, log *logger.Logger, maxImages int) {
@@ -123,6 +124,57 @@ func (svc *Service) renderHandler() http.HandlerFunc {
 		w.Header().Set("Content-Type", "image/png")
 		w.Header().Set("Cache-Control", "no-store")
 		_, _ = w.Write(buf.Bytes())
+	}
+}
+
+type regionInfo struct {
+	X    int    `json:"x"`
+	Y    int    `json:"y"`
+	W    int    `json:"w"`
+	H    int    `json:"h"`
+	Hex  string `json:"hex"`
+	RGB  string `json:"rgb"`
+	CMYK string `json:"cmyk"`
+	Name string `json:"name"`
+}
+
+func (svc *Service) regionsHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "POST only", http.StatusMethodNotAllowed)
+			return
+		}
+
+		req := renderRequest{Opts: colormap.DefaultOptions()}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "bad json: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		px, ok := svc.store.get(req.ID)
+		if !ok {
+			http.Error(w, "unknown image id (re-upload)", http.StatusNotFound)
+			return
+		}
+
+		req.Opts.Gap = 0
+
+		regions, err := colormap.BuildFrom(px, req.Opts)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		infos := make([]regionInfo, len(regions))
+		for i, rg := range regions {
+			infos[i] = regionInfo{
+				X: rg.X, Y: rg.Y, W: rg.W, H: rg.H,
+				Hex: rg.Hex, RGB: rg.RGB, CMYK: rg.CMYK, Name: rg.Name,
+			}
+		}
+
+		w.Header().Set("Cache-Control", "no-store")
+		writeJSON(w, svc.log, infos)
 	}
 }
 

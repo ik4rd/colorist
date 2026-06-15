@@ -37,3 +37,15 @@ export async function renderImage(id, opts, signal) {
 
   return res.blob();
 }
+
+export async function fetchRegions(id, opts, signal) {
+  const res = await fetch("/regions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, opts }),
+    signal,
+  });
+  if (!res.ok) throw new Error(await res.text());
+
+  return res.json();
+}

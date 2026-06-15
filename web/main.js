@@ -1,7 +1,8 @@
 import { RENDER_DEBOUNCE_MS } from "./config.js";
 import { initControls, collectOpts } from "./controls.js";
 import { themeFromImage } from "./theme.js";
-import { uploadImage, renderImage } from "./api.js";
+import { uploadImage, renderImage, fetchRegions } from "./api.js";
+import { initPicker, setRegions } from "./picker.js";
 
 const els = {
   controls: document.getElementById("controls"),
@@ -14,6 +15,8 @@ const els = {
 };
 
 let imageID = null;
+let imageW = 0;
+let imageH = 0;
 let lastObjectURL = null;
 let lastBlob = null;
 let renderAbort = null;
@@ -32,6 +35,8 @@ async function handleFile(file) {
   try {
     const info = await uploadImage(file);
     imageID = info.id;
+    imageW = info.width;
+    imageH = info.height;
     els.stage.classList.remove("empty");
     setStatus("");
     render();
@@ -51,8 +56,13 @@ async function render() {
   if (renderAbort) renderAbort.abort();
   renderAbort = new AbortController();
 
+  const opts = collectOpts();
+
   try {
-    const blob = await renderImage(imageID, collectOpts(), renderAbort.signal);
+    const [blob, regions] = await Promise.all([
+      renderImage(imageID, opts, renderAbort.signal),
+      fetchRegions(imageID, opts, renderAbort.signal),
+    ]);
     const url = URL.createObjectURL(blob);
 
     els.result.src = url;
@@ -64,6 +74,7 @@ async function render() {
 
     lastObjectURL = url;
     lastBlob = blob;
+    setRegions(regions, imageW, imageH);
     setStatus("");
   } catch (err) {
     if (err.name === "AbortError") return;
@@ -117,3 +128,4 @@ els.file.addEventListener("change", (e) => handleFile(e.target.files[0]));
 els.stage.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
 
 initControls(els.controls, scheduleRender);
+initPicker(els.result, els.stage, () => collectOpts().LabelFormat);

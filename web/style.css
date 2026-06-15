@@ -224,6 +224,38 @@ main {
     border-radius: 10px;
     box-shadow: 0 12px 30px -20px rgba(40, 60, 10, 0.5);
     animation: fade 0.3s ease;
+    cursor: crosshair;
+}
+
+.region-highlight {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+    box-sizing: border-box;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.55),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+    border-radius: 3px;
+}
+
+.region-tip {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    background: rgba(20, 22, 16, 0.92);
+    color: #fff;
+    font:
+        500 0.8rem/1 "JetBrains Mono",
+        monospace;
+    padding: 6px 9px;
+    border-radius: 7px;
+    white-space: nowrap;
+    box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.6);
+}
+.region-tip.copied {
+    background: var(--lime-bright, #84cc16);
+    color: #11210a;
 }
 @keyframes fade {
     from {
