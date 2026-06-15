@@ -17,12 +17,15 @@ jobs:
           - os: macos-latest
             platform: darwin/universal
             artifact: colorist-macos
+            tags: ""
           - os: windows-latest
             platform: windows/amd64
             artifact: colorist-windows
+            tags: ""
           - os: ubuntu-latest
             platform: linux/amd64
             artifact: colorist-linux
+            tags: "webkit2_41"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +45,7 @@ jobs:
 
       - name: Build
         working-directory: desktop
-        run: wails build -platform ${{ matrix.platform }} -clean
+        run: wails build -platform ${{ matrix.platform }} -clean -tags "${{ matrix.tags }}"
 
       - uses: actions/upload-artifact@v4
         with:
