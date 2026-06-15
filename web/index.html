@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>colorist</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <header class="hero">
+            <div class="hero-inner">
+                <div class="brand">
+                    <h1>colorist</h1>
+                </div>
+                <div class="actions">
+                    <label class="upload">
+                        <input
+                            id="file"
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            hidden
+                        />
+                        <span>pick image</span>
+                    </label>
+                    <a id="save" class="save" download="colorist.png" hidden
+                        >save</a
+                    >
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section id="stage" class="empty">
+                <div id="dropzone">
+                    <p>drop a <b>.png</b> or <b>.jpg</b> here</p>
+                </div>
+                <img id="result" alt="color-map" hidden />
+                <div id="status"></div>
+            </section>
+        </main>
+
+        <footer id="controlbar">
+            <div id="controls"></div>
+        </footer>
+
+        <script type="module" src="main.js"></script>
+    </body>
+</html>
