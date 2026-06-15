@@ -2,14 +2,16 @@ let img = null;
 let highlight = null;
 let tooltip = null;
 let getFormat = () => "hex";
+let getView = () => null;
 
 let regions = [];
 let dims = { w: 0, h: 0 };
 let flashTimer = null;
 
-export function initPicker(imgEl, stageEl, formatGetter) {
+export function initPicker(imgEl, stageEl, formatGetter, viewGetter) {
   img = imgEl;
   getFormat = formatGetter;
+  getView = viewGetter || (() => null);
 
   highlight = document.createElement("div");
   highlight.className = "region-highlight";
@@ -32,17 +34,35 @@ export function setRegions(list, width, height) {
   hideHover();
 }
 
+function viewRect() {
+  return getView() || { x: 0, y: 0, w: dims.w, h: dims.h };
+}
+
+function cursorSource(e) {
+  const cw = img.clientWidth;
+  const ch = img.clientHeight;
+  if (!cw || !ch) return null;
+
+  const sr = img.offsetParent.getBoundingClientRect();
+  const fx = (e.clientX - sr.left - img.offsetLeft) / cw;
+  const fy = (e.clientY - sr.top - img.offsetTop) / ch;
+  if (fx < 0 || fx > 1 || fy < 0 || fy > 1) return null;
+
+  const v = viewRect();
+
+  return { sx: v.x + fx * v.w, sy: v.y + fy * v.h };
+}
+
 function regionAt(e) {
   if (!regions.length || !dims.w || !dims.h) return null;
 
-  const box = img.getBoundingClientRect();
-  if (box.width === 0 || box.height === 0) return null;
-
-  const sx = ((e.clientX - box.left) / box.width) * dims.w;
-  const sy = ((e.clientY - box.top) / box.height) * dims.h;
+  const p = cursorSource(e);
+  if (!p) return null;
 
   for (const r of regions) {
-    if (sx >= r.x && sx < r.x + r.w && sy >= r.y && sy < r.y + r.h) return r;
+    if (p.sx >= r.x && p.sx < r.x + r.w && p.sy >= r.y && p.sy < r.y + r.h) {
+      return r;
+    }
   }
 
   return null;
@@ -68,11 +88,12 @@ function onMove(e) {
     return;
   }
 
-  const kx = img.clientWidth / dims.w;
-  const ky = img.clientHeight / dims.h;
+  const v = viewRect();
+  const kx = img.clientWidth / v.w;
+  const ky = img.clientHeight / v.h;
 
-  highlight.style.left = img.offsetLeft + r.x * kx + "px";
-  highlight.style.top = img.offsetTop + r.y * ky + "px";
+  highlight.style.left = img.offsetLeft + (r.x - v.x) * kx + "px";
+  highlight.style.top = img.offsetTop + (r.y - v.y) * ky + "px";
   highlight.style.width = r.w * kx + "px";
   highlight.style.height = r.h * ky + "px";
   highlight.hidden = false;

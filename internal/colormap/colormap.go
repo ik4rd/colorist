@@ -115,12 +115,16 @@ func Build(img image.Image, opts Options) ([]Region, error) {
 }
 
 func ProcessPixels(px *Pixels, opts Options) (image.Image, error) {
+	return ProcessPixelsView(px, View{}, opts)
+}
+
+func ProcessPixelsView(px *Pixels, view View, opts Options) (image.Image, error) {
 	regions, err := BuildFrom(px, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	return Render(regions, px.w, px.h, opts), nil
+	return RenderView(regions, px.w, px.h, view, opts), nil
 }
 
 func Process(img image.Image, opts Options) (image.Image, error) {

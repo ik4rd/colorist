@@ -3,6 +3,8 @@ import { initControls, collectOpts } from "./controls.js";
 import { applyTheme, resetTheme } from "./theme.js";
 import { uploadImage, renderImage, fetchRegions } from "./api.js";
 import { initPicker, setRegions } from "./picker.js";
+import { initZoom, getView, setImage, onRendered, resetZoom } from "./zoom.js";
+import { preventPageZoom } from "./noscale.js";
 
 const els = {
   controls: document.getElementById("controls"),
@@ -38,6 +40,7 @@ async function handleFile(file) {
     imageW = info.width;
     imageH = info.height;
     applyTheme(info.theme);
+    setImage(imageW, imageH);
     els.stage.classList.remove("empty");
     els.reset.hidden = false;
     setStatus("");
@@ -68,6 +71,7 @@ function resetImage() {
   els.stage.classList.add("empty");
 
   setRegions([], 0, 0);
+  resetZoom();
   resetTheme();
   setStatus("");
 }
@@ -84,14 +88,17 @@ async function render() {
   renderAbort = new AbortController();
 
   const opts = collectOpts();
+  const view = getView();
+  const isFull = !view;
 
   try {
     const [blob, regions] = await Promise.all([
-      renderImage(imageID, opts, renderAbort.signal),
+      renderImage(imageID, opts, view, renderAbort.signal),
       fetchRegions(imageID, opts, renderAbort.signal),
     ]);
     const url = URL.createObjectURL(blob);
 
+    els.result.onload = () => onRendered(url, isFull);
     els.result.src = url;
     els.result.hidden = false;
     els.save.href = url;
@@ -156,5 +163,7 @@ els.file.addEventListener("change", (e) => handleFile(e.target.files[0]));
 
 els.stage.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
 
+preventPageZoom();
 initControls(els.controls, scheduleRender);
-initPicker(els.result, els.stage, () => collectOpts().LabelFormat);
+initPicker(els.result, els.stage, () => collectOpts().LabelFormat, getView);
+initZoom(els.result, els.stage, scheduleRender);

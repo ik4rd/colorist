@@ -7,13 +7,50 @@ import (
 	"sort"
 )
 
-const renderTarget = 2000
+const (
+	renderTarget = 2000
+	cropMaxOut   = 2560
+)
+
+type View struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+	W int `json:"w"`
+	H int `json:"h"`
+}
+
+func (v View) empty() bool { return v.W <= 0 || v.H <= 0 }
 
 func Render(regions []Region, w, h int, opts Options) image.Image {
-	scale := renderScale(w, h)
-	dst := image.NewRGBA(image.Rect(0, 0, w*scale, h*scale))
+	return RenderView(regions, w, h, View{}, opts)
+}
 
-	lbl := newLabeler(scale)
+func RenderView(regions []Region, w, h int, view View, opts Options) image.Image {
+	S := renderScale(w, h)
+	base := float64(max(w, h))
+
+	var ox, oy float64
+	var outW, outH int
+	var g float64
+	var lblScale float64
+
+	if view.empty() {
+		ox, oy = 0, 0
+		g = float64(S)
+		outW, outH = w*S, h*S
+		lblScale = float64(S)
+	} else {
+		ox, oy = float64(view.X), float64(view.Y)
+		out := math.Min(base*float64(S), cropMaxOut)
+		g = out / float64(max(view.W, view.H))
+		outW = int(math.Round(float64(view.W) * g))
+		outH = int(math.Round(float64(view.H) * g))
+		lblScale = out / base
+	}
+
+	dst := image.NewRGBA(image.Rect(0, 0, outW, outH))
+	bounds := dst.Bounds()
+	lbl := newLabeler(lblScale)
 
 	type lab struct {
 		rect               image.Rectangle
@@ -25,20 +62,29 @@ func Render(regions []Region, w, h int, opts Options) image.Image {
 	labs := make([]lab, len(regions))
 	eligible := make([]int, 0, len(regions))
 
-	for i, rg := range regions {
-		x0, y0 := rg.X*scale, rg.Y*scale
-		x1, y1 := (rg.X+rg.W)*scale, (rg.Y+rg.H)*scale
+	gap := float64(opts.Gap)
 
-		if opts.Gap > 0 {
-			x1 -= opts.Gap * scale
-			y1 -= opts.Gap * scale
-			if x1 <= x0 || y1 <= y0 {
-				labs[i].skip = true
-				continue
-			}
+	for i, rg := range regions {
+		fx0 := (float64(rg.X) - ox) * g
+		fy0 := (float64(rg.Y) - oy) * g
+		fx1 := (float64(rg.X+rg.W) - ox) * g
+		fy1 := (float64(rg.Y+rg.H) - oy) * g
+
+		if gap > 0 {
+			fx1 -= gap * g
+			fy1 -= gap * g
 		}
 
-		rect := image.Rect(x0, y0, x1, y1)
+		rect := image.Rect(
+			int(math.Round(fx0)), int(math.Round(fy0)),
+			int(math.Round(fx1)), int(math.Round(fy1)),
+		).Intersect(bounds)
+
+		if rect.Empty() {
+			labs[i].skip = true
+			continue
+		}
+
 		primary, secondary, ref := labelLines(rg, opts.LabelFormat)
 		labs[i] = lab{rect: rect, primary: primary, secondary: secondary, ref: ref}
 

@@ -26,11 +26,14 @@ function fileToBase64(file) {
   });
 }
 
-export async function renderImage(id, opts, signal) {
+export async function renderImage(id, opts, view, signal) {
+  const body = { id, opts };
+  if (view) body.view = view;
+
   const res = await fetch("/render", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, opts }),
+    body: JSON.stringify(body),
     signal,
   });
   if (!res.ok) throw new Error(await res.text());

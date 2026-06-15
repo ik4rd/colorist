@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"math"
 
 	"github.com/ik4rd/colorist/internal/assets"
 	"golang.org/x/image/font"
@@ -45,18 +46,16 @@ type labeler struct {
 	minCell int
 }
 
-func newLabeler(scale int) *labeler {
-	if scale < 1 {
+func newLabeler(scale float64) *labeler {
+	if scale <= 0 {
 		scale = 1
 	}
 
-	s := float64(scale)
-
 	return &labeler{
 		faces:   make(map[int]font.Face),
-		maxFont: labelMaxFontSize * s,
-		minFont: labelMinFontSize * s,
-		minCell: labelNameMinCellPx * scale,
+		maxFont: labelMaxFontSize * scale,
+		minFont: labelMinFontSize * scale,
+		minCell: int(math.Round(labelNameMinCellPx * scale)),
 	}
 }
 

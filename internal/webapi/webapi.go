@@ -100,6 +100,7 @@ func (svc *Service) uploadHandler() http.HandlerFunc {
 type renderRequest struct {
 	ID   string           `json:"id"`
 	Opts colormap.Options `json:"opts"`
+	View *colormap.View   `json:"view,omitempty"`
 }
 
 func (svc *Service) renderHandler() http.HandlerFunc {
@@ -123,7 +124,12 @@ func (svc *Service) renderHandler() http.HandlerFunc {
 
 		req.Opts.Gap = 0
 
-		out, err := colormap.ProcessPixels(px, req.Opts)
+		view := colormap.View{}
+		if req.View != nil {
+			view = *req.View
+		}
+
+		out, err := colormap.ProcessPixelsView(px, view, req.Opts)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
