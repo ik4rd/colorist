@@ -2,5 +2,5 @@ package assets
 
 import _ "embed"
 
-//go:embed fonts/SpaceMono-Regular.ttf
-var SpaceMono []byte
+//go:embed fonts/JetBrainsMono-Regular.ttf
+var JetBrainsMono []byte

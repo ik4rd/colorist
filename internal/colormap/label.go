@@ -24,7 +24,7 @@ var (
 	labelDark  = color.RGBA{R: 40, G: 40, B: 40, A: maxChannel}
 	labelLight = color.RGBA{R: 235, G: 235, B: 235, A: maxChannel}
 
-	labelFont = mustParseFont(assets.SpaceMono)
+	labelFont = mustParseFont(assets.JetBrainsMono)
 )
 
 func mustParseFont(b []byte) *opentype.Font {
