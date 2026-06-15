@@ -19,8 +19,11 @@ func main() {
 	log := logger.New(os.Stderr)
 	defer log.Recover()
 
-	mux := newHandler(log)
-	app := NewApp()
+	svc := webapi.New(log, maxImages)
+	mux := http.NewServeMux()
+	svc.Register(mux)
+
+	app := NewApp(svc)
 
 	err := wails.Run(&options.App{
 		Title:     "colorist",
@@ -38,10 +41,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func newHandler(log *logger.Logger) *http.ServeMux {
-	mux := http.NewServeMux()
-	webapi.Register(mux, log, maxImages)
-	return mux
 }

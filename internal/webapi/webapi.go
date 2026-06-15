@@ -5,7 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"image"
+	"io"
 	"net/http"
 
 	"github.com/ik4rd/colorist/internal/colormap"
@@ -16,13 +18,40 @@ import (
 
 const maxUploadBytes = 32 << 20 // 32 MiB
 
-func Register(mux *http.ServeMux, log *logger.Logger, maxImages int) {
-	s := newStore(maxImages)
-	mux.HandleFunc("/upload", uploadHandler(log, s))
-	mux.HandleFunc("/render", renderHandler(s))
+type Service struct {
+	log   *logger.Logger
+	store *store
 }
 
-func uploadHandler(log *logger.Logger, s *store) http.HandlerFunc {
+func New(log *logger.Logger, maxImages int) *Service {
+	return &Service{log: log, store: newStore(maxImages)}
+}
+
+func (svc *Service) Register(mux *http.ServeMux) {
+	mux.HandleFunc("/upload", svc.uploadHandler())
+	mux.HandleFunc("/render", svc.renderHandler())
+}
+
+func Register(mux *http.ServeMux, log *logger.Logger, maxImages int) {
+	New(log, maxImages).Register(mux)
+}
+
+func (svc *Service) Upload(data []byte) (id string, width, height int, err error) {
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("decode: %w", err)
+	}
+
+	px, err := colormap.NewPixels(img)
+	if err != nil {
+		return "", 0, 0, err
+	}
+
+	b := img.Bounds()
+	return svc.store.put(px), b.Dx(), b.Dy(), nil
+}
+
+func (svc *Service) uploadHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "POST only", http.StatusMethodNotAllowed)
@@ -37,21 +66,19 @@ func uploadHandler(log *logger.Logger, s *store) http.HandlerFunc {
 		}
 		defer file.Close()
 
-		img, _, err := image.Decode(file)
+		data, err := io.ReadAll(file)
 		if err != nil {
-			http.Error(w, "decode: "+err.Error(), http.StatusUnsupportedMediaType)
+			http.Error(w, "read: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		px, err := colormap.NewPixels(img)
+		id, width, height, err := svc.Upload(data)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
 			return
 		}
 
-		id := s.put(px)
-		b := img.Bounds()
-		writeJSON(w, log, map[string]any{"id": id, "width": b.Dx(), "height": b.Dy()})
+		writeJSON(w, svc.log, map[string]any{"id": id, "width": width, "height": height})
 	}
 }
 
@@ -60,7 +87,7 @@ type renderRequest struct {
 	Opts colormap.Options `json:"opts"`
 }
 
-func renderHandler(s *store) http.HandlerFunc {
+func (svc *Service) renderHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "POST only", http.StatusMethodNotAllowed)
@@ -73,7 +100,7 @@ func renderHandler(s *store) http.HandlerFunc {
 			return
 		}
 
-		px, ok := s.get(req.ID)
+		px, ok := svc.store.get(req.ID)
 		if !ok {
 			http.Error(w, "unknown image id (re-upload)", http.StatusNotFound)
 			return

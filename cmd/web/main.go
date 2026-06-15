@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	mux := http.NewServeMux()
-	webapi.Register(mux, log, *maxImages)
+	webapi.New(log, *maxImages).Register(mux)
 	mux.Handle("/", http.FileServer(http.Dir(*webDir)))
 
 	log.Infof("listening on %s (serving %s)", *addr, *webDir)
