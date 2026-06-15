@@ -1,6 +1,6 @@
 import { RENDER_DEBOUNCE_MS } from "./config.js";
 import { initControls, collectOpts } from "./controls.js";
-import { applyTheme } from "./theme.js";
+import { applyTheme, resetTheme } from "./theme.js";
 import { uploadImage, renderImage, fetchRegions } from "./api.js";
 import { initPicker, setRegions } from "./picker.js";
 
@@ -12,6 +12,7 @@ const els = {
   status: document.getElementById("status"),
   file: document.getElementById("file"),
   save: document.getElementById("save"),
+  reset: document.getElementById("reset"),
 };
 
 let imageID = null;
@@ -38,11 +39,37 @@ async function handleFile(file) {
     imageH = info.height;
     applyTheme(info.theme);
     els.stage.classList.remove("empty");
+    els.reset.hidden = false;
     setStatus("");
     render();
   } catch (err) {
     setStatus("Upload failed: " + err.message);
   }
+}
+
+function resetImage() {
+  if (renderAbort) renderAbort.abort();
+  clearTimeout(debounceTimer);
+
+  imageID = null;
+  imageW = 0;
+  imageH = 0;
+
+  if (lastObjectURL) URL.revokeObjectURL(lastObjectURL);
+  lastObjectURL = null;
+  lastBlob = null;
+
+  els.result.removeAttribute("src");
+  els.result.hidden = true;
+  els.save.hidden = true;
+  els.save.removeAttribute("href");
+  els.reset.hidden = true;
+  els.file.value = "";
+  els.stage.classList.add("empty");
+
+  setRegions([], 0, 0);
+  resetTheme();
+  setStatus("");
 }
 
 function scheduleRender() {
@@ -108,6 +135,8 @@ els.save.addEventListener("click", async (e) => {
     setStatus("Save failed: " + err);
   }
 });
+
+els.reset.addEventListener("click", resetImage);
 
 els.file.addEventListener("change", (e) => handleFile(e.target.files[0]));
 

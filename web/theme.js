@@ -1,8 +1,25 @@
+const THEME_VARS = [
+  "--c1",
+  "--c2",
+  "--c3",
+  "--c4",
+  "--lime",
+  "--lime-deep",
+  "--lime-bright",
+  "--lime-soft",
+  "--accent-rgb",
+];
+
 export function applyTheme(theme) {
   if (!theme) return;
 
   applyPalette(theme.palette);
   applyAccent(theme.accent);
+}
+
+export function resetTheme() {
+  const root = document.documentElement;
+  THEME_VARS.forEach((v) => root.style.removeProperty(v));
 }
 
 function applyPalette(colors) {
