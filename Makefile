@@ -16,6 +16,17 @@ run:
 web:
 	go run ./cmd/web $(ARGS)
 
+# Desktop (Wails). Requires the wails CLI: see desktop/README.md.
+# Builds a native app for the host OS into desktop/build/bin.
+.PHONY: desktop
+desktop:
+	cd desktop && wails build $(ARGS)
+
+# Live-reloading desktop dev window (rebuilds Go on change).
+.PHONY: desktop-dev
+desktop-dev:
+	cd desktop && wails dev $(ARGS)
+
 .PHONY: test
 test:
 	go test ./...

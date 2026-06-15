@@ -33,3 +33,7 @@ go.work.sum
 .vscode/
 *.swp
 .DS_Store
+
+# Wails (desktop)
+/desktop/build/bin/
+/web/wailsjs/

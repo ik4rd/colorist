@@ -1,0 +1,14 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "colorist",
+  "outputfilename": "colorist",
+  "frontend:dir": "../web",
+  "frontend:install": "",
+  "frontend:build": "",
+  "author": {
+    "name": "ik4rd"
+  },
+  "info": {
+    "productName": "colorist"
+  }
+}
