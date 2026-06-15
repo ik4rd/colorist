@@ -34,6 +34,8 @@ func parseFlags(args []string) (config, error) {
 	fs.IntVar(&cfg.opts.HalvesPerAxis, "halves-per-axis", cfg.opts.HalvesPerAxis,
 		"quadtree: splits per axis (2 = 2x2 quadrants)")
 	fs.BoolVar(&cfg.opts.Labels, "labels", cfg.opts.Labels, "draw hex labels on large rectangles")
+	fs.BoolVar(&cfg.opts.ColorNames, "color-names", cfg.opts.ColorNames,
+		"also draw the color name on large rectangles")
 
 	if err := fs.Parse(args); err != nil {
 		return config{}, err

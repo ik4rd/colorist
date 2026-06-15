@@ -9,6 +9,12 @@ export const CONTROLS = [
     options: ["quadtree", "bsp", "adaptive_bsp", "kdtree"],
   },
   {
+    type: "toggle",
+    key: "ColorNames",
+    label: "names",
+    value: true,
+  },
+  {
     type: "range",
     key: "HalvesPerAxis",
     label: "splits",

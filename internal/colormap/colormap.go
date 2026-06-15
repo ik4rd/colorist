@@ -19,6 +19,7 @@ const (
 	defaultGap           = 0
 	defaultHalvesPerAxis = 2
 	defaultLabels        = true
+	defaultColorNames    = true
 
 	minBound         = 1
 	minHalvesPerAxis = 2
@@ -34,6 +35,7 @@ type Options struct {
 	Gap           int
 	HalvesPerAxis int
 	Labels        bool
+	ColorNames    bool
 }
 
 func DefaultOptions() Options {
@@ -47,6 +49,7 @@ func DefaultOptions() Options {
 		Gap:           defaultGap,
 		HalvesPerAxis: defaultHalvesPerAxis,
 		Labels:        defaultLabels,
+		ColorNames:    defaultColorNames,
 	}
 }
 

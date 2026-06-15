@@ -13,7 +13,7 @@ export function initControls(el, changeHandler) {
 function buildControls() {
   for (const c of CONTROLS) {
     const row = document.createElement("div");
-    row.className = "control";
+    row.className = c.type === "toggle" ? "control control--toggle" : "control";
     row.showFor = c.showFor || null;
 
     const head = document.createElement("div");
@@ -23,6 +23,21 @@ function buildControls() {
     label.textContent = c.label;
     label.htmlFor = "ctl-" + c.key;
     head.appendChild(label);
+
+    if (c.type === "toggle") {
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = !!c.value;
+      input.id = "ctl-" + c.key;
+      input.dataset.key = c.key;
+      input.dataset.int = "";
+      input.addEventListener("change", onChange);
+
+      head.appendChild(input);
+      row.appendChild(head);
+      container.appendChild(row);
+      continue;
+    }
 
     const readout = document.createElement("span");
     readout.className = "readout";
@@ -90,6 +105,7 @@ function updateVisibility() {
 }
 
 function controlValue(input) {
+  if (input.type === "checkbox") return input.checked;
   if (input.tagName === "SELECT") return input.value;
   const raw = input.valuesList
     ? input.valuesList[parseInt(input.value, 10)]

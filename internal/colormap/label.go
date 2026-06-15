@@ -18,6 +18,8 @@ const (
 	labelPaddingFraction = 0.3
 	labelDPI             = 72
 	labelLumaThreshold   = 140
+	labelNameMinCellPx   = 96
+	labelLineSpacing     = 0.2
 )
 
 var (
@@ -63,51 +65,107 @@ func (l *labeler) face(size int) font.Face {
 	return f
 }
 
-func (l *labeler) draw(dst draw.Image, rect image.Rectangle, text string, bg color.RGBA) {
-	size := float64(rect.Dy()) * labelHeightFraction
+func (l *labeler) draw(dst draw.Image, rect image.Rectangle, hexStr, name string, bg color.RGBA) {
+	lines := []string{hexStr}
 
+	bigEnough := name != "" &&
+		rect.Dx() >= labelNameMinCellPx &&
+		rect.Dy() >= labelNameMinCellPx
+	if bigEnough {
+		lines = []string{hexStr, name}
+	}
+
+	for {
+		f, pad, ok := l.fit(rect, lines)
+		if ok {
+			l.render(dst, rect, lines, f, pad, bg)
+			return
+		}
+
+		if len(lines) > 1 {
+			lines = lines[:1]
+			continue
+		}
+
+		return
+	}
+}
+
+func (l *labeler) fit(rect image.Rectangle, lines []string) (font.Face, int, bool) {
+	n := len(lines)
+
+	size := float64(rect.Dy()) * labelHeightFraction / lineUnit(n)
 	if size > labelMaxFontSize {
 		size = labelMaxFontSize
 	}
 	if size < labelMinFontSize {
-		return
+		return nil, 0, false
 	}
 
 	f := l.face(int(size))
 	if f == nil {
-		return
+		return nil, 0, false
 	}
 
 	pad := int(size * labelPaddingFraction)
 	avail := rect.Dx() - 2*pad
 	if avail <= 0 {
-		return
+		return nil, 0, false
 	}
 
-	if textW := font.MeasureString(f, text).Ceil(); textW > avail {
-		size *= float64(avail) / float64(textW)
-
+	if maxW := widestLine(f, lines); maxW > avail {
+		size *= float64(avail) / float64(maxW)
 		if size < labelMinFontSize {
-			return
+			return nil, 0, false
 		}
 		if f = l.face(int(size)); f == nil {
-			return
+			return nil, 0, false
 		}
-
 		pad = int(size * labelPaddingFraction)
 	}
 
-	drawer := &font.Drawer{
-		Dst:  dst,
-		Src:  image.NewUniform(labelColor(bg)),
-		Face: f,
-		Dot: fixed.Point26_6{
-			X: fixed.I(rect.Min.X + pad),
-			Y: fixed.I(rect.Min.Y+pad) + f.Metrics().Ascent,
-		},
+	if int(size*lineUnit(n))+2*pad > rect.Dy() {
+		return nil, 0, false
 	}
 
-	drawer.DrawString(text)
+	return f, pad, true
+}
+
+func (l *labeler) render(dst draw.Image, rect image.Rectangle, lines []string, f font.Face, pad int, bg color.RGBA) {
+	src := image.NewUniform(labelColor(bg))
+	m := f.Metrics()
+	lineH := m.Ascent + m.Descent + fixed.I(int(float64(m.Height.Ceil())*labelLineSpacing))
+
+	baseline := fixed.I(rect.Min.Y+pad) + m.Ascent
+
+	for _, line := range lines {
+		drawer := &font.Drawer{
+			Dst:  dst,
+			Src:  src,
+			Face: f,
+			Dot: fixed.Point26_6{
+				X: fixed.I(rect.Min.X + pad),
+				Y: baseline,
+			},
+		}
+		drawer.DrawString(line)
+		baseline += lineH
+	}
+}
+
+func widestLine(f font.Face, lines []string) int {
+	maxW := 0
+	for _, line := range lines {
+		if w := font.MeasureString(f, line).Ceil(); w > maxW {
+			maxW = w
+		}
+	}
+
+	return maxW
+}
+
+func lineUnit(n int) float64 {
+	return float64(n) + float64(n-1)*labelLineSpacing
 }
 
 func labelColor(bg color.RGBA) color.RGBA {

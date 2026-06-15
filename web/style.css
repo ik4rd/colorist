@@ -291,6 +291,53 @@ main {
     color: var(--lime);
 }
 
+.control--toggle {
+    flex: 0 0 auto;
+    min-width: 0;
+    justify-content: center;
+}
+.control--toggle .control-head {
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.6rem;
+}
+.control--toggle input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    width: 38px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--lime-soft);
+    border: 1px solid var(--line-strong);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s ease;
+}
+.control--toggle input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transform: translateY(-50%);
+    box-shadow: 0 1px 3px -1px rgba(40, 60, 10, 0.6);
+    transition: left 0.15s ease;
+}
+.control--toggle input[type="checkbox"]:checked {
+    background: var(--lime);
+    border-color: var(--lime);
+}
+.control--toggle input[type="checkbox"]:checked::after {
+    left: 18px;
+}
+.control--toggle input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 4px var(--lime-soft);
+}
+
 .control select {
     appearance: none;
     width: 100%;

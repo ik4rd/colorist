@@ -29,7 +29,11 @@ func Render(regions []Region, w, h int, opts Options) image.Image {
 		draw.Draw(dst, rect, &image.Uniform{C: rg.Mean}, image.Point{}, draw.Src)
 
 		if lbl != nil {
-			lbl.draw(dst, rect, rg.Hex, rg.Mean)
+			name := ""
+			if opts.ColorNames {
+				name = rg.Name
+			}
+			lbl.draw(dst, rect, rg.Hex, name, rg.Mean)
 		}
 	}
 
