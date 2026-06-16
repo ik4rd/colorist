@@ -1,9 +1,5 @@
 package colormap
 
-type Rect struct {
-	X, Y, W, H int
-}
-
 type SplitFunc func(px *Pixels, r Rect, opts Options) []Rect
 
 func Subdivide(px *Pixels, opts Options, split SplitFunc) []Region {

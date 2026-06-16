@@ -12,13 +12,6 @@ const (
 	cropMaxOut   = 2560
 )
 
-type View struct {
-	X int `json:"x"`
-	Y int `json:"y"`
-	W int `json:"w"`
-	H int `json:"h"`
-}
-
 func (v View) empty() bool { return v.W <= 0 || v.H <= 0 }
 
 func Render(regions []Region, w, h int, opts Options) image.Image {

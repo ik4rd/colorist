@@ -1,0 +1,72 @@
+main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    justify-content: center;
+    padding: clamp(0.75rem, 1.5vw + 0.5vh, 1.5rem);
+}
+
+#stage {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+#stage.dragging #dropzone {
+    color: var(--lime);
+}
+
+#dropzone {
+    text-align: center;
+    color: var(--muted);
+    pointer-events: none;
+}
+#dropzone p {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    color: var(--text);
+}
+#dropzone b {
+    color: var(--lime);
+}
+.dz-hint {
+    font-size: 0.85rem;
+}
+#stage:not(.empty) #dropzone {
+    display: none;
+}
+
+#result {
+    position: relative;
+    z-index: 1;
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: pixelated;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px -20px rgba(40, 60, 10, 0.5);
+    animation: fade 0.3s ease;
+    cursor: crosshair;
+}
+
+@keyframes fade {
+    from {
+        opacity: 0;
+        transform: scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+#status {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 1rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+}

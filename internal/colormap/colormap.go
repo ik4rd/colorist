@@ -32,19 +32,6 @@ const (
 	minHalvesPerAxis = 2
 )
 
-type Options struct {
-	Algorithm     string
-	Threshold     float64
-	Detail        float64
-	DetailFrac    float64
-	MinSize       int
-	MaxDepth      int
-	Gap           int
-	HalvesPerAxis int
-	LabelDensity  float64
-	LabelFormat   string
-}
-
 func DefaultOptions() Options {
 	return Options{
 		Algorithm:     DefaultAlgorithm,

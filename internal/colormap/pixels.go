@@ -11,13 +11,6 @@ const (
 	channelCount = 3
 )
 
-type Pixels struct {
-	w, h int
-	r    []float64
-	g    []float64
-	b    []float64
-}
-
 func newPixels(img image.Image) *Pixels {
 	bnd := img.Bounds()
 	w, h := bnd.Dx(), bnd.Dy()
