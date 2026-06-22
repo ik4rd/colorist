@@ -3,12 +3,14 @@ import { initControls, collectOpts } from "./controls.js";
 import { applyTheme, resetTheme } from "./theme.js";
 import { uploadImage, renderImage, fetchRegions } from "./api.js";
 import { initPicker, setRegions } from "./picker.js";
+import { initHistory, clearHistory } from "./history.js";
 import { initZoom, getView, setImage, onRendered, resetZoom } from "./zoom.js";
 import { preventPageZoom } from "./noscale.js";
 
 const els = {
   controls: document.getElementById("controls"),
   stage: document.getElementById("stage"),
+  history: document.getElementById("history"),
   dropzone: document.getElementById("dropzone"),
   result: document.getElementById("result"),
   status: document.getElementById("status"),
@@ -71,6 +73,7 @@ function resetImage() {
   els.stage.classList.add("empty");
 
   setRegions([], 0, 0);
+  clearHistory();
   resetZoom();
   resetTheme();
   setStatus("");
@@ -165,5 +168,6 @@ els.stage.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
 
 preventPageZoom();
 initControls(els.controls, scheduleRender);
+initHistory(els.history);
 initPicker(els.result, els.stage, () => collectOpts().LabelFormat, getView);
 initZoom(els.result, els.stage, scheduleRender);

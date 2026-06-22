@@ -1,3 +1,5 @@
+import { pushHistory } from "./history.js";
+
 let img = null;
 let highlight = null;
 let tooltip = null;
@@ -120,6 +122,8 @@ async function onClick(e) {
 
   const text = valueFor(r);
   const ok = await copy(text);
+
+  if (ok) pushHistory(r.hex, text);
 
   flash(ok ? "copied " + text : "copy failed", e);
 }
