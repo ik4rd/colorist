@@ -1,15 +1,7 @@
 # colorist
 
-| [input] | [output] |
-|-------|--------|
-| <img src="images/socks/input.jpg" width="320"> | <img src="images/socks/output.png" width="320"> |
+<img width="1440" height="900" alt="colorist-preview" src="https://github.com/user-attachments/assets/cf2f28f8-807f-4b46-9550-56fc58b01718" />
 
-## usage
-
-```bash
-> make build
-> ./bin/colorist --input <image> --output <result>
-```
 ## install (macos, apple silicon)
 
 grab the latest `colorist-<version>-arm64.dmg` from [Releases](../../releases)
