@@ -153,6 +153,7 @@ els.file.addEventListener("change", (e) => handleFile(e.target.files[0]));
 ["dragover", "dragenter"].forEach((ev) =>
   els.stage.addEventListener(ev, (e) => {
     e.preventDefault();
+    if (imageID) return;
     els.stage.classList.add("dragging");
   }),
 );
@@ -164,7 +165,10 @@ els.file.addEventListener("change", (e) => handleFile(e.target.files[0]));
   }),
 );
 
-els.stage.addEventListener("drop", (e) => handleFile(e.dataTransfer.files[0]));
+els.stage.addEventListener("drop", (e) => {
+  if (imageID) return;
+  handleFile(e.dataTransfer.files[0]);
+});
 
 preventPageZoom();
 initControls(els.controls, scheduleRender);
